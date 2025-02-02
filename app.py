@@ -5,13 +5,15 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from PIL import Image
 import io
-
+import h5py
+with h5py.File("FruitNinja.h5", "r") as f:
+    model = tf.keras.models.load_model(f)
 # Load the quality grading model
-@st.cache_resource
-def load_model():
-    return tf.keras.models.load_model("FruitNinja.h5")
+##@st.cache_resource
+#def load_model():
+    #return tf.keras.models.load_model("FruitNinja.h5")
 
-model = load_model()
+#model = load_model()
 
 # Function to preprocess and predict fruit quality
 def predict_quality(image):
