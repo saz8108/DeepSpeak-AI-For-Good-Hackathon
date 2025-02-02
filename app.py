@@ -6,7 +6,7 @@ from PIL import Image
 import io
 import matplotlib.pyplot as plt
 
-# Set page config (optional)
+# Set page configuration
 st.set_page_config(page_title="Fruit Ninja App", layout="wide")
 
 # Sidebar Navigation
@@ -16,19 +16,26 @@ page = st.sidebar.radio("Go to",
 
 # --- Utility Functions ---
 
-@st.cache_resource
+# Use a custom hash function for tf.keras.models.Model to help caching
+@st.cache_resource(hash_funcs={tf.keras.models.Model: lambda model: None})
 def load_model():
     """
     Load the pre-trained quality grading model from the file FruitNinja.h5.
-    (Ensure this file is in the same directory as this app.py.)
+    (Ensure this file is in the same directory as app.py.)
     """
-    model = tf.keras.models.load_model("FruitNinja.h5")
+    try:
+        # Use compile=False to avoid issues with custom losses/metrics if any
+        model = tf.keras.models.load_model("FruitNinja.h5", compile=False)
+    except Exception as e:
+        st.error("Error loading the quality grading model. Please ensure 'FruitNinja.h5' is in the correct format.")
+        raise e
     return model
 
 def preprocess_image(image, target_size=(224, 224)):
     """
-    Preprocess an image for model prediction.
-    Resize to target_size and scale pixel values to [0, 1].
+    Preprocess an image for model prediction:
+    - Resize to target_size
+    - Convert to array and scale pixel values to [0, 1]
     """
     if isinstance(image, bytes):
         image = Image.open(io.BytesIO(image))
@@ -39,10 +46,10 @@ def preprocess_image(image, target_size=(224, 224)):
     image = image.resize(target_size)
     image_array = np.array(image)
     # If the image has an alpha channel, remove it.
-    if image_array.shape[-1] == 4:
+    if image_array.ndim == 3 and image_array.shape[-1] == 4:
         image_array = image_array[..., :3]
     image_array = np.expand_dims(image_array, axis=0)  # add batch dimension
-    image_array = image_array / 255.0  # scale pixel values
+    image_array = image_array / 255.0  # normalize pixel values
     return image_array
 
 # --- Page: Dashboard ---
@@ -51,7 +58,7 @@ if page == "Dashboard":
     st.write("## Overview and Insights")
     st.write("This dashboard provides insights from the data. (Placeholder content.)")
     
-    # Example: Create a sample line chart with random data
+    # Sample line chart with random data
     df = pd.DataFrame({
         'Date': pd.date_range(start='2023-01-01', periods=10, freq='D'),
         'Fresh': np.random.randint(50, 100, size=10),
@@ -73,7 +80,7 @@ elif page == "Quality Grading":
         st.image(image, caption='Uploaded Image', use_column_width=True)
         st.write("Processing image...")
         
-        # Preprocess image for model input
+        # Preprocess the image for the model
         processed_image = preprocess_image(image)
         
         # Load the pre-trained model
@@ -82,7 +89,7 @@ elif page == "Quality Grading":
         # Run the prediction
         prediction = model.predict(processed_image)
         predicted_class = np.argmax(prediction, axis=1)[0]
-        # Mapping prediction to quality class
+        # Map prediction to quality classes
         class_names = ['Fresh', 'Slightly Damaged', 'Heavily Damaged']
         result = class_names[predicted_class]
         
@@ -95,7 +102,7 @@ elif page == "Demand Forecast":
     st.title("Demand Forecast")
     st.write("This page will provide demand forecasting insights. (Placeholder content)")
     
-    # Example: Sample forecast chart
+    # Sample forecast chart
     forecast_data = pd.DataFrame({
         'Date': pd.date_range(start='2023-01-01', periods=15, freq='D'),
         'Forecasted Demand': np.random.randint(100, 200, size=15)
@@ -108,7 +115,7 @@ elif page == "Inventory Management":
     st.title("Inventory Management & Dynamic Pricing")
     st.write("This page will help manage inventory and provide pricing suggestions to reduce waste.")
     
-    # Example: Display sample inventory data
+    # Sample inventory data
     inventory = pd.DataFrame({
         'Item': ['Fresh Bananas', 'Slightly Damaged Bananas', 'Heavily Damaged Bananas'],
         'Quantity': [100, 50, 20]
@@ -121,7 +128,7 @@ elif page == "Inventory Management":
     # Slider for expected food waste percentage
     waste_percentage = st.slider("Expected Food Waste (%)", 0, 100, 20)
     
-    # Dummy dynamic pricing suggestions (using placeholder formulas)
+    # Dummy dynamic pricing suggestions (placeholder formulas)
     discount_fresh = round(waste_percentage * 0.1, 2)
     discount_slightly = round(waste_percentage * 0.15, 2)
     discount_heavily = round(waste_percentage * 0.2, 2)
