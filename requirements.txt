@@ -1,6 +1,8 @@
 streamlit
-tensorflow-cpu
+tensorflow
 numpy
-pillow
+pandas
 matplotlib
-h5py
+scikit-learn
+Pillow
+seaborn
