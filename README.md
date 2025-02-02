@@ -42,6 +42,8 @@ The fruit quality grading model classifies produce into three categories:
 
 The model acheived an 87% accuracy on testing data based on a very small dataset meaning it would be even better without these constraints.
 
+Please see the ipynb attached which shows the code behind the Model as well as more detailed analysis of statistical results to showcase the efficacy of the model.
+
 In the **demand forecasting** section, the model uses historical data (timestamped food waste data) to predict the required quantities of fruits and vegetables for future periods, optimizing inventory levels and helping to reduce waste. This will still be implemented in the future.
 
 
